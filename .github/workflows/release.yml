@@ -36,6 +36,7 @@ jobs:
           else
             echo "::set-output name=isMatched::false"
             echo "Version is different"
+            gh variable set LFSLOCKMANAGER --body "new value"
             # echo "LFSLOCKMANAGER=${{ steps.get-release.outputs.release }}" >> ./.github/variables/vars.env
             # sed -i "s/\(LFSLOCKMANAGER=\).*/\1${{ steps.get-release.outputs.release }}/" ./.github/variables/vars.env
           fi
