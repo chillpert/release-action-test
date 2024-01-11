@@ -1,0 +1,31 @@
+name: LFSLockManger-Updater
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  download-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Get latest release info
+        id: get-release
+        run: |
+          owner="chillpert"
+          repo="lfs-lock-manager"
+          release=$(curl -s "https://api.github.com/repos/$owner/$repo/releases/latest" | grep -oP '"tag_name": "\K(.*)(?=")')
+          echo "::set-output name=release::$release"
+
+      - name: Download release
+        run: |
+          owner="chillpert"
+          repo="lfs-lock-manager"
+          release="${{ steps.get-release.outputs.release }}"
+          asset_url="https://github.com/$owner/$repo/releases/download/$release/asset.zip"
+          curl -L -o asset.zip "$asset_url"
+          unzip asset.zip
