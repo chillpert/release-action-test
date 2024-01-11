@@ -44,9 +44,11 @@ jobs:
             echo "Version is different"
             # echo "LFSLOCKMANAGER=${{ steps.get-release.outputs.release }}" >> ./.github/variables/vars.env
             sed -i "s/\(LFSLOCKMANAGER=\).*/\1${{ steps.get-release.outputs.release }}/" ./.github/variables/vars.env
+            echo "::set-output name=my_variable::true"
           fi
 
       - name: Download release
+        if: steps.set_variable.outputs.my_variable != 'true'
         run: |
           owner="chillpert"
           repo="lfs-lock-manager"
@@ -56,11 +58,13 @@ jobs:
           unzip asset.zip
 
       - name: Configure Git
+        if: steps.set_variable.outputs.my_variable != 'true'
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
 
       - name: Commit changes
+        if: steps.set_variable.outputs.my_variable != 'true'
         run: |
           ls -a
           git add LfsLockManager.exe
