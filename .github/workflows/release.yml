@@ -29,3 +29,14 @@ jobs:
           asset_url="https://github.com/$owner/$repo/releases/download/$release/LfsLockManager_Windows.zip"
           curl -L -o asset.zip "$asset_url"
           unzip asset.zip
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "UpdaterBot"
+          git config --global user.email "dev@christianhilpert.com"
+
+      - name: Commit changes
+        run: |
+          git add LfsLockManager_Windows/LfsLockManager.exe
+          git commit -m "Update LFS lock manager to latest"
+          git push
