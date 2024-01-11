@@ -27,8 +27,8 @@ jobs:
           # GH_TOKEN: ${{ github.token }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "HERE: $vars.LFSLOCKMANAGER == ${{ steps.get-release.outputs.release }}"
-          if [[ "$LFSLOCKMANAGER" == "${{ steps.get-release.outputs.release }}" ]]; then
+          echo "HERE: ${{ vars.LFSLOCKMANAGER }} == ${{ steps.get-release.outputs.release }}"
+          if [[ "${{ vars.LFSLOCKMANAGER }}" == "${{ steps.get-release.outputs.release }}" ]]; then
             echo "::set-output name=isMatched::true"
             echo "Version is same"
             echo "::set-output name=my_variable::true"
