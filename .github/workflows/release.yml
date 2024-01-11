@@ -26,6 +26,6 @@ jobs:
           owner="chillpert"
           repo="lfs-lock-manager"
           release="${{ steps.get-release.outputs.release }}"
-          asset_url="https://github.com/$owner/$repo/releases/download/$release/asset.zip"
+          asset_url="https://github.com/$owner/$repo/releases/download/$release/LfsLockManager_Windows.zip"
           curl -L -o asset.zip "$asset_url"
           unzip asset.zip
