@@ -38,13 +38,13 @@ jobs:
           if [[ "$LFSLOCKMANAGER" == "${{ steps.get-release.outputs.release }}" ]]; then
             echo "::set-output name=isMatched::true"
             echo "Version is same"
+            echo "::set-output name=my_variable::true"
             gh run cancel ${{ github.run_id }}
           else
             echo "::set-output name=isMatched::false"
             echo "Version is different"
             # echo "LFSLOCKMANAGER=${{ steps.get-release.outputs.release }}" >> ./.github/variables/vars.env
             sed -i "s/\(LFSLOCKMANAGER=\).*/\1${{ steps.get-release.outputs.release }}/" ./.github/variables/vars.env
-            echo "::set-output name=my_variable::true"
           fi
 
       - name: Download release
