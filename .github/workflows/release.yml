@@ -21,20 +21,13 @@ jobs:
           release=$(curl -s "https://api.github.com/repos/$owner/$repo/releases/latest" | grep -oP '"tag_name": "\K(.*)(?=")')
           echo "::set-output name=release::$release"
 
-      - name: Get LFSLockManager version
-        run: echo "MYVAR=${{ vars.MYVAR }}" >> $GITHUB_ENV
-
-      - name: Set Environment Variables
-        uses: tw3lveparsecs/github-actions-set-variables@latest
-        with:
-          envFilePath: ./.github/variables/vars.env
-
       - name: Compare MyVar with tag name
         id: compare
         env:
-          GH_TOKEN: ${{ github.token }}
+          # GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "HERE: $LFSLOCKMANAGER == ${{ steps.get-release.outputs.release }}"
+          echo "HERE: $vars.LFSLOCKMANAGER == ${{ steps.get-release.outputs.release }}"
           if [[ "$LFSLOCKMANAGER" == "${{ steps.get-release.outputs.release }}" ]]; then
             echo "::set-output name=isMatched::true"
             echo "Version is same"
@@ -44,7 +37,7 @@ jobs:
             echo "::set-output name=isMatched::false"
             echo "Version is different"
             # echo "LFSLOCKMANAGER=${{ steps.get-release.outputs.release }}" >> ./.github/variables/vars.env
-            sed -i "s/\(LFSLOCKMANAGER=\).*/\1${{ steps.get-release.outputs.release }}/" ./.github/variables/vars.env
+            # sed -i "s/\(LFSLOCKMANAGER=\).*/\1${{ steps.get-release.outputs.release }}/" ./.github/variables/vars.env
           fi
 
       - name: Download release
