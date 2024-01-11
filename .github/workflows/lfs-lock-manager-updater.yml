@@ -1,0 +1,109 @@
+name: LFSLockManger-Updater
+
+on: workflow_dispatch
+
+# on:
+#   push:
+#     branches:
+#       - main
+#       - develop
+
+jobs:
+  download-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Get latest release info
+        id: get-release
+        run: |
+          owner="chillpert"
+          repo="lfs-lock-manager"
+          release=$(curl -s "https://api.github.com/repos/$owner/$repo/releases/latest" | grep -oP '"tag_name": "\K(.*)(?=")')
+          echo "release=$release" >> $GITHUB_OUTPUT
+
+      - name: Compare versions
+        id: compare
+        run: |
+          old_file=$(find . -name 'LfsLockManager_v*' -exec basename {} \;)
+          echo "old_file=$old_file" >> $GITHUB_OUTPUT
+
+          if [ ! -f "$old_file" ]; then
+            echo "No lock manager executable exists. Downloading initial one."
+            echo "is_matched=False" >> $GITHUB_OUTPUT
+          else
+            echo "Local lock manager found: '$old_file'"
+
+            current_version=$(echo $old_file | grep -Eo '[+-]?[0-9]+([.][0-9]+)?')
+            echo "Current version: '$current_version'"
+
+            new_version=$(echo ${{ steps.get-release.outputs.release }} | grep -Eo '[+-]?[0-9]+([.][0-9]+)?')
+            echo "New version: '$new_version'"
+
+            echo "$new_version > $current_version"
+            if (( $(echo "$new_version > $current_version" |bc -l) )); then
+              echo "is_matched=False" >> $GITHUB_OUTPUT
+              echo "Continue with download of new version ..."
+            else
+              echo "is_matched=True" >> $GITHUB_OUTPUT
+              echo "Nothing to do"
+            fi
+          fi
+
+      - name: Download release
+        if: steps.compare.outputs.is_matched != 'true'
+        run: |
+          owner="chillpert"
+          repo="lfs-lock-manager"
+          release="${{ steps.get-release.outputs.release }}"
+          asset_url="https://github.com/$owner/$repo/releases/download/$release/LfsLockManager_Windows.zip"
+
+          mkdir -p temp
+          cd temp
+          curl -L -o asset.zip "$asset_url"
+          unzip asset.zip
+          mv LfsLockManager.exe ../LfsLockManager_${{ steps.get-release.outputs.release }}.exe
+          cd ../
+
+      - name: Configure Git
+        if: steps.compare.outputs.is_matched != 'true'
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+
+      - name: Commit changes
+        if: steps.compare.outputs.is_matched != 'true'
+        run: |
+          git switch -c junk/github-actions
+
+          # Stage the new file
+          git add LfsLockManager_${{ steps.get-release.outputs.release }}.exe
+
+          # Delete old version if it exists
+          old_file=${{ steps.compare.outputs.old_file }}
+          echo "Old file: '$old_file'"
+          if [ -f "$old_file" ]; then
+            echo "Deleting old file '$old_file'"
+            rm $old_file
+            git add $old_file
+          fi
+
+          if [ ! -f "settings.ini" ]; then
+            # If no previous version existed, we also need 'settings.ini' as a starting point
+            echo "Adding 'settings.ini'"
+            mv temp/settings.ini settings.ini
+            git add settings.ini
+          fi
+
+          git commit -m "Update LFS lock manager to latest"
+          # git pull --rebase
+          git push --set-upstream origin junk/github-actions
+
+          gh pr create -t "Update LFS lock manager (${{ steps.get-release.outputs.release }})" -b "Update to lock manager to ${{ steps.get-release.outputs.release }}"
+          # Let's not merge after all, for safety reasons
+          # gh pr merge junk/github-actions --rebase --delete-branch
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
