@@ -1,9 +1,11 @@
 name: LFSLockManger-Updater
 
-on:
-  push:
-    branches:
-      - main
+# This workflow requires 'Action
+
+# on:
+#   push:
+#     branches:
+#       - main
 
 jobs:
   download-release:
