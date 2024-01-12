@@ -39,7 +39,7 @@ jobs:
             echo "New version: '$new_version'"
 
             echo "$current_version == $new_version"
-            if [[ "$new_version" == "${{ steps.get-release.outputs.release }}" ]]; then
+            if (( $(echo "$new_version > $current_version" |bc -l) )); then
               echo "::set-output name=isMatched::true"
               echo "Nothing to do"
             else
