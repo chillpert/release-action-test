@@ -28,7 +28,7 @@ jobs:
 
           if [[ -z $old_file ]]; then
             echo "No lock manager executable exists. Downloading initial one."
-            echo "::set-output name=isMatched::false"
+            echo "::set-output name=is_matched::false"
           else
             echo "Local lock manager found: '$old_file'"
 
@@ -40,16 +40,16 @@ jobs:
 
             echo "$new_version > $current_version"
             if (( $(echo "$new_version > $current_version" |bc -l) )); then
-              echo "::set-output name=isMatched::false"
+              echo "::set-output name=is_matched::false"
               echo "Continue with download of new version ..."
             else
-              echo "::set-output name=isMatched::true"
+              echo "::set-output name=is_matched::true"
               echo "Nothing to do"
             fi
           fi
 
       - name: Download release
-        if: steps.compare.outputs.my_variable != 'true'
+        if: steps.compare.outputs.is_matched != 'true'
         run: |
           owner="chillpert"
           repo="lfs-lock-manager"
@@ -60,16 +60,14 @@ jobs:
           mv LfsLockManager.exe LfsLockManager_${{ steps.get-release.outputs.release }}.exe
 
       - name: Configure Git
-        if: steps.compare.outputs.my_variable != 'true'
+        if: steps.compare.outputs.is_matched != 'true'
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
 
       - name: Commit changes
-        if: steps.compare.outputs.my_variable != 'true'
+        if: steps.compare.outputs.is_matched != 'true'
         run: |
-          ls -a
-
           # Stage the new file
           git add LfsLockManager_${{ steps.get-release.outputs.release }}.exe
 
