@@ -75,7 +75,7 @@ jobs:
 
           # Delete old version if it exists
           old_file=${{ steps.compare.outputs.old_file }}
-          if [[ -z $old_file ]]; then
+          if ! [[ -z $old_file ]]; then
             echo "Deleting old file '$old_file'"
             rm $old_file
             git add $old_file
