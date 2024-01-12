@@ -73,6 +73,8 @@ jobs:
       - name: Commit changes
         if: steps.compare.outputs.is_matched != 'true'
         run: |
+          git switch -c junk/github-actions
+
           # Stage the new file
           git add LfsLockManager_${{ steps.get-release.outputs.release }}.exe
 
@@ -94,5 +96,8 @@ jobs:
 
           git commit -m "Update LFS lock manager to latest"
           git pull --rebase
-          git push
+          git push --set-upstream junk/github-actions
+
+          gh pr create -t "Update LFS lock manager" -b "Update to lock manager to ${{ steps.get-release.outputs.release }}"
+          gh pr merge junk/github-actions --rebase --delete-branch
 
