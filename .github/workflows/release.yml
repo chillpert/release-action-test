@@ -25,6 +25,7 @@ jobs:
         id: compare
         run: |
           old_file=$(find . -name 'LfsLockManager_v*' -exec basename {} \;)
+          echo "::set-output name=old_file::$old_file"
 
           if [ ! -f "$old_file" ]; then
             echo "No lock manager executable exists. Downloading initial one."
