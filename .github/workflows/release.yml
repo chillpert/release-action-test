@@ -100,4 +100,6 @@ jobs:
 
           gh pr create -t "Update LFS lock manager (${{ steps.get-release.outputs.release }}" -b "Update to lock manager to ${{ steps.get-release.outputs.release }}"
           gh pr merge junk/github-actions --rebase --delete-branch
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
