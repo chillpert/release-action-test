@@ -1,9 +1,7 @@
 name: LFSLockManger-Updater
 
-# This workflow requires 'Action
-
-on: 
-  workflow-dispatch
+on:
+  workflow_dispatch:
     inputs:
       logLevel:
         description: 'Log level'
@@ -22,6 +20,7 @@ on:
         description: 'Environment to run tests against'
         type: environment
         required: true
+
 # on:
 #   push:
 #     branches:
