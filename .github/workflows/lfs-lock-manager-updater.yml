@@ -38,6 +38,7 @@ jobs:
 
             current_version=$(echo $old_file | grep -Eo '[+-]?[0-9]+([.][0-9]+)?')
             echo "Current version: '$current_version'"
+            echo "previous_version=$current_version" >> $GITHUB_OUTPUT
 
             new_version=$(echo ${{ steps.get-release.outputs.release }} | grep -Eo '[+-]?[0-9]+([.][0-9]+)?')
             echo "New version: '$new_version'"
@@ -67,15 +68,12 @@ jobs:
           mv LfsLockManager.exe ../LfsLockManager_${{ steps.get-release.outputs.release }}.exe
           cd ../
 
-      - name: Configure Git
+      - name: Commit changes
         if: steps.compare.outputs.is_matched != 'true'
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
 
-      - name: Commit changes
-        if: steps.compare.outputs.is_matched != 'true'
-        run: |
           git switch -c junk/github-actions
 
           # Stage the new file
@@ -101,7 +99,7 @@ jobs:
           # git pull --rebase
           git push --set-upstream origin junk/github-actions
 
-          gh pr create -t "Update LFS lock manager (${{ steps.get-release.outputs.release }})" -b "Update to lock manager to ${{ steps.get-release.outputs.release }}"
+          gh pr create -t "Update LFS lock manager (${{ steps.get-release.outputs.release }})" -b "Update lock manager from ${{ steps.compare.outputs.previous_version }} to ${{ steps.get-release.outputs.release }}"
           # Let's not merge after all, for safety reasons
           # gh pr merge junk/github-actions --rebase --delete-branch
         env:
