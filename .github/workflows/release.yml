@@ -21,6 +21,26 @@ jobs:
           release=$(curl -s "https://api.github.com/repos/$owner/$repo/releases/latest" | grep -oP '"tag_name": "\K(.*)(?=")')
           echo "::set-output name=release::$release"
 
+      - name: Compare versions
+        id: compare
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          current_file_name=$(find . -name 'LfsLockManager_v*' -exec basename {} \;)
+          current_version="$current_file_name" | grep -Eo '[+-]?[0-9]+([.][0-9]+)?'
+          new_version="${{ steps.get-release.outputs.release }}" | grep -Eo '[+-]?[0-9]+([.][0-9]+)?'
+          echo "$current_version == $new_version"
+          if [[ "$new_version" == "${{ steps.get-release.outputs.release }}" ]]; then
+            echo "::set-output name=isMatched::true"
+            echo "Version is same"
+            echo "::set-output name=my_variable::true"
+          else
+            echo "::set-output name=isMatched::false"
+            echo "Version is different"
+          fi
+
+          echo "::set-output name=isMatched::false"
+
       - name: Download release
         if: steps.compare.outputs.my_variable != 'true'
         run: |
@@ -30,7 +50,7 @@ jobs:
           asset_url="https://github.com/$owner/$repo/releases/download/$release/LfsLockManager_Windows.zip"
           curl -L -o asset.zip "$asset_url"
           unzip asset.zip
-          mv LfsLockManager.exe LfsLockManger_$release.exe
+          mv LfsLockManager.exe LfsLockManager_${{ steps.get-release.outputs.release }}.exe
 
       - name: Configure Git
         if: steps.compare.outputs.my_variable != 'true'
@@ -42,6 +62,7 @@ jobs:
         if: steps.compare.outputs.my_variable != 'true'
         run: |
           ls -a
-          git add "LfsLockManager_${{ steps.get-release.outputs.release }}"
+          # git add LfsLockManager.exe
+          git add LfsLockManager_${{ steps.get-release.outputs.release }}.exe
           git commit -m "Update LFS lock manager to latest"
           git push
