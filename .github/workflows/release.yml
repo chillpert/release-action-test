@@ -19,17 +19,17 @@ jobs:
           owner="chillpert"
           repo="lfs-lock-manager"
           release=$(curl -s "https://api.github.com/repos/$owner/$repo/releases/latest" | grep -oP '"tag_name": "\K(.*)(?=")')
-          echo "::set-output name=release::$release"
+          echo "release=$release" >> $GITHUB_OUTPUT
 
       - name: Compare versions
         id: compare
         run: |
           old_file=$(find . -name 'LfsLockManager_v*' -exec basename {} \;)
-          echo "::set-output name=old_file::$old_file"
+          echo "old_file=$old_file" >> $GITHUB_OUTPUT
 
           if [ ! -f "$old_file" ]; then
             echo "No lock manager executable exists. Downloading initial one."
-            echo "::set-output name=is_matched::false"
+            echo "is_matched=False" >> $GITHUB_OUTPUT
           else
             echo "Local lock manager found: '$old_file'"
 
@@ -41,10 +41,10 @@ jobs:
 
             echo "$new_version > $current_version"
             if (( $(echo "$new_version > $current_version" |bc -l) )); then
-              echo "::set-output name=is_matched::false"
+              echo "is_matched=False" >> $GITHUB_OUTPUT
               echo "Continue with download of new version ..."
             else
-              echo "::set-output name=is_matched::true"
+              echo "is_matched=True" >> $GITHUB_OUTPUT
               echo "Nothing to do"
             fi
           fi
