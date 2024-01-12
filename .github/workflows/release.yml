@@ -38,13 +38,13 @@ jobs:
             new_version=$(echo ${{ steps.get-release.outputs.release }} | grep -Eo '[+-]?[0-9]+([.][0-9]+)?')
             echo "New version: '$new_version'"
 
-            echo "$current_version == $new_version"
+            echo "$new_version > $current_version"
             if (( $(echo "$new_version > $current_version" |bc -l) )); then
-              echo "::set-output name=isMatched::true"
-              echo "Nothing to do"
-            else
               echo "::set-output name=isMatched::false"
               echo "Continue with download of new version ..."
+            else
+              echo "::set-output name=isMatched::true"
+              echo "Nothing to do"
             fi
           fi
 
