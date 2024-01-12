@@ -24,15 +24,15 @@ jobs:
       - name: Compare versions
         id: compare
         run: |
-          current_file=$(find . -name 'LfsLockManager_v*' -exec basename {} \;)
+          old_file=$(find . -name 'LfsLockManager_v*' -exec basename {} \;)
 
-          if [[ -z $current_file ]]; then
+          if [[ -z $old_file ]]; then
             echo "No lock manager executable exists. Downloading initial one."
             echo "::set-output name=isMatched::false"
           else
-            echo "Local lock manager found: '$current_file'"
+            echo "Local lock manager found: '$old_file'"
 
-            current_version=$(echo $current_file | grep -Eo '[+-]?[0-9]+([.][0-9]+)?')
+            current_version=$(echo $old_file | grep -Eo '[+-]?[0-9]+([.][0-9]+)?')
             echo "Current version: '$current_version'"
 
             new_version=$(echo ${{ steps.get-release.outputs.release }} | grep -Eo '[+-]?[0-9]+([.][0-9]+)?')
@@ -69,7 +69,21 @@ jobs:
         if: steps.compare.outputs.my_variable != 'true'
         run: |
           ls -a
-          # git add LfsLockManager.exe
+
+          # Stage the new file
           git add LfsLockManager_${{ steps.get-release.outputs.release }}.exe
+
+          # Delete old version if it exists
+          old_file=${{ steps.compare.outputs.old_file }}
+          if [[ -z $old_file ]]; then
+            echo "Deleting old file '$old_file'"
+            rm $old_file
+            git add $old_file
+          else
+            # If no previous version existed, we also need 'settings.ini' as a starting point
+            echo "Adding 'settings.ini'"
+            git add settings.ini
+          fi
+
           git commit -m "Update LFS lock manager to latest"
           git push
