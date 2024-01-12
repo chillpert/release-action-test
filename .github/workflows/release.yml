@@ -26,7 +26,7 @@ jobs:
         run: |
           old_file=$(find . -name 'LfsLockManager_v*' -exec basename {} \;)
 
-          if ! [[ -f $old_file ]]; then
+          if [ ! -f "$old_file" ]; then
             echo "No lock manager executable exists. Downloading initial one."
             echo "::set-output name=is_matched::false"
           else
@@ -77,12 +77,12 @@ jobs:
 
           # Delete old version if it exists
           old_file=${{ steps.compare.outputs.old_file }}
-          if [[ -f $old_file ]]; then
+          if [ -f "$old_file" ]; then
             echo "Deleting old file '$old_file'"
             rm $old_file
             git add $old_file
 
-          if ! [[ -f "settings.ini" ]]; then
+          if [ ! -f "settings.ini" ]; then
             # If no previous version existed, we also need 'settings.ini' as a starting point
             echo "Adding 'settings.ini'"
             mv temp/settings.ini settings.ini
