@@ -23,25 +23,30 @@ jobs:
 
       - name: Compare versions
         id: compare
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: |
-          current_file_name=$(find . -name 'LfsLockManager_v*' -exec basename {} \;)
-          echo "Current file name: '$current_file_name'"
-          current_version=$(echo $current_file_name | grep -Eo '[+-]?[0-9]+([.][0-9]+)?')
-          echo "Current version: '$current_version'"
-          new_version=$(echo ${{ steps.get-release.outputs.release }} | grep -Eo '[+-]?[0-9]+([.][0-9]+)?')
-          echo "New version: '$new_version'"
-          echo "$current_version == $new_version"
-          # if [[ "$new_version" == "${{ steps.get-release.outputs.release }}" ]]; then
-          #   echo "::set-output name=isMatched::true"
-          #   echo "Version is same"
-          #   echo "::set-output name=my_variable::true"
-          # else
-          #   echo "::set-output name=isMatched::false"
-          #   echo "Version is different"
-          # fi
-          # echo "::set-output name=isMatched::false"
+          current_file=$(find . -name 'LfsLockManager_v*' -exec basename {} \;)
+
+          if [[ -z $current_file ]]; then
+            echo "No lock manager executable exists. Downloading initial one."
+            echo "::set-output name=isMatched::false"
+          else
+            echo "Local lock manager found: '$current_file'"
+
+            current_version=$(echo $current_file | grep -Eo '[+-]?[0-9]+([.][0-9]+)?')
+            echo "Current version: '$current_version'"
+
+            new_version=$(echo ${{ steps.get-release.outputs.release }} | grep -Eo '[+-]?[0-9]+([.][0-9]+)?')
+            echo "New version: '$new_version'"
+
+            echo "$current_version == $new_version"
+            if [[ "$new_version" == "${{ steps.get-release.outputs.release }}" ]]; then
+              echo "::set-output name=isMatched::true"
+              echo "Nothing to do"
+            else
+              echo "::set-output name=isMatched::false"
+              echo "Continue with download of new version ..."
+            fi
+          fi
 
       - name: Download release
         if: steps.compare.outputs.my_variable != 'true'
