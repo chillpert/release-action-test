@@ -27,19 +27,21 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           current_file_name=$(find . -name 'LfsLockManager_v*' -exec basename {} \;)
+          echo "Current file name: '$current_file_name'"
           current_version=$(echo $current_file_name | grep -Eo '[+-]?[0-9]+([.][0-9]+)?')
+          echo "Current version: '$current_version'"
           new_version="$(echo ${{ steps.get-release.outputs.release }} | grep -Eo '[+-]?[0-9]+([.][0-9]+)?')
+          echo "New version: '$new_version'"
           echo "$current_version == $new_version"
-          if [[ "$new_version" == "${{ steps.get-release.outputs.release }}" ]]; then
-            echo "::set-output name=isMatched::true"
-            echo "Version is same"
-            echo "::set-output name=my_variable::true"
-          else
-            echo "::set-output name=isMatched::false"
-            echo "Version is different"
-          fi
-
-          echo "::set-output name=isMatched::false"
+          # if [[ "$new_version" == "${{ steps.get-release.outputs.release }}" ]]; then
+          #   echo "::set-output name=isMatched::true"
+          #   echo "Version is same"
+          #   echo "::set-output name=my_variable::true"
+          # else
+          #   echo "::set-output name=isMatched::false"
+          #   echo "Version is different"
+          # fi
+          # echo "::set-output name=isMatched::false"
 
       - name: Download release
         if: steps.compare.outputs.my_variable != 'true'
