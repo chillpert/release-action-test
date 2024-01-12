@@ -82,12 +82,13 @@ jobs:
             rm $old_file
             git add $old_file
 
-          if [ ! -f "settings.ini" ]; then
-            # If no previous version existed, we also need 'settings.ini' as a starting point
-            echo "Adding 'settings.ini'"
-            mv temp/settings.ini settings.ini
-            git add settings.ini
-          fi
+          # if [ ! -f "settings.ini" ]; then
+          #   # If no previous version existed, we also need 'settings.ini' as a starting point
+          #   echo "Adding 'settings.ini'"
+          #   mv temp/settings.ini settings.ini
+          #   git add settings.ini
+          # fi
 
           git commit -m "Update LFS lock manager to latest"
-          git push
+          # git push
+
