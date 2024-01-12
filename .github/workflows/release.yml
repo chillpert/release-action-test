@@ -77,6 +77,7 @@ jobs:
 
           # Delete old version if it exists
           old_file=${{ steps.compare.outputs.old_file }}
+          echo "Old file: '$old_file'"
           if [ -f "$old_file" ]; then
             echo "Deleting old file '$old_file'"
             rm $old_file
