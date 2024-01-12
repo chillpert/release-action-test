@@ -38,6 +38,7 @@ jobs:
 
             current_version=$(echo $old_file | grep -Eo '[+-]?[0-9]+([.][0-9]+)?')
             echo "Current version: '$current_version'"
+            echo "previous_version=$current_version" >> $GITHUB_OUTPUT
 
             new_version=$(echo ${{ steps.get-release.outputs.release }} | grep -Eo '[+-]?[0-9]+([.][0-9]+)?')
             echo "New version: '$new_version'"
@@ -67,16 +68,23 @@ jobs:
           mv LfsLockManager.exe ../LfsLockManager_${{ steps.get-release.outputs.release }}.exe
           cd ../
 
-      - name: Configure Git
-        if: steps.compare.outputs.is_matched != 'true'
-        run: |
-          git config user.name 'github-actions[bot]'
-          git config user.email 'github-actions[bot]@users.noreply.github.com'
-
       - name: Commit changes
         if: steps.compare.outputs.is_matched != 'true'
         run: |
-          git switch -c junk/github-actions
+          # Make sure the following Git actions will be performed by the GitHub actions bot (for cosmetic reasons)
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+
+          branch_name="junk/github-actions"
+
+          # Check if the branch already exists
+          if git rev-parse --verify "$branch_name" >/dev/null 2>&1; then
+            git switch $branch_name
+            needs_pull=True
+          else
+            git switch -c $branch_name
+            needs_pull=False
+          fi
 
           # Stage the new file
           git add LfsLockManager_${{ steps.get-release.outputs.release }}.exe
@@ -90,20 +98,41 @@ jobs:
             git add $old_file
           fi
 
+          # If no previous version existed, we also need 'settings.ini' as a starting point
           if [ ! -f "settings.ini" ]; then
-            # If no previous version existed, we also need 'settings.ini' as a starting point
             echo "Adding 'settings.ini'"
             mv temp/settings.ini settings.ini
             git add settings.ini
           fi
 
+          # Commit changes
           git commit -m "Update LFS lock manager to latest"
-          # git pull --rebase
-          git push --set-upstream origin junk/github-actions
 
-          gh pr create -t "Update LFS lock manager (${{ steps.get-release.outputs.release }})" -b "Update to lock manager to ${{ steps.get-release.outputs.release }}"
-          # Let's not merge after all, for safety reasons
-          # gh pr merge junk/github-actions --rebase --delete-branch
+          # Push changes
+          if [[ "$needs_pull" == "True" ]]; then
+            git pull --rebase
+            git push
+          else
+            git push --set-upstream origin $branch_name
+          fi
+          
+          # Set the PR title and body
+          previous_version=${{ steps.compare.outputs.previous_version }}
+          new_version=${{ steps.get-release.outputs.release }}
+
+          if [ -z "$previous_version" ]; then
+            pr_title=$(echo "Download LFS lock manager ($new_version)")
+            pr_body=$(echo "Add LFS lock manager ($new_version) to the repo. There was no version to replace.\nThis is an automated action.")
+          else
+            pr_title=$(echo "Update LFS lock manager ($new_version)")
+            pr_body=$(echo "Update LFS lock manager from $previous_version to $new_version.\nThis is an automated action.")
+          fi
+
+          # Create the PR
+          gh pr create -t "$pr_title" -b "$pr_body"
+
+          # Let's not merge after all, for safety reasons. Feel free to uncomment this line if you prefer it.
+          # gh pr merge $branch_name --rebase --delete-branch
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
