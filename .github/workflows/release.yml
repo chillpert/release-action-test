@@ -42,6 +42,6 @@ jobs:
         if: steps.compare.outputs.my_variable != 'true'
         run: |
           ls -a
-          git add "LfsLockManager_${{ setps.get-release.outputs.release }}"
+          git add "LfsLockManager_${{ steps.get-release.outputs.release }}"
           git commit -m "Update LFS lock manager to latest"
           git push
