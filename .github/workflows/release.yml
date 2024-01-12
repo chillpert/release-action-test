@@ -55,10 +55,13 @@ jobs:
           repo="lfs-lock-manager"
           release="${{ steps.get-release.outputs.release }}"
           asset_url="https://github.com/$owner/$repo/releases/download/$release/LfsLockManager_Windows.zip"
+
           mkdir -p temp
-          curl -L -o temp/asset.zip "$asset_url"
-          unzip temp/asset.zip
-          mv temp/LfsLockManager.exe LfsLockManager_${{ steps.get-release.outputs.release }}.exe
+          cd temp
+          curl -L -o asset.zip "$asset_url"
+          unzip asset.zip
+          mv LfsLockManager.exe ../LfsLockManager_${{ steps.get-release.outputs.release }}.exe
+          cd ../
 
       - name: Configure Git
         if: steps.compare.outputs.is_matched != 'true'
