@@ -30,7 +30,7 @@ jobs:
           echo "Current file name: '$current_file_name'"
           current_version=$(echo $current_file_name | grep -Eo '[+-]?[0-9]+([.][0-9]+)?')
           echo "Current version: '$current_version'"
-          new_version="$(echo ${{ steps.get-release.outputs.release }} | grep -Eo '[+-]?[0-9]+([.][0-9]+)?')
+          new_version=$(echo ${{ steps.get-release.outputs.release }} | grep -Eo '[+-]?[0-9]+([.][0-9]+)?')
           echo "New version: '$new_version'"
           echo "$current_version == $new_version"
           # if [[ "$new_version" == "${{ steps.get-release.outputs.release }}" ]]; then
