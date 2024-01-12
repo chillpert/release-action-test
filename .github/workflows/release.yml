@@ -95,9 +95,9 @@ jobs:
           fi
 
           git commit -m "Update LFS lock manager to latest"
-          git pull --rebase
+          # git pull --rebase
           git push --set-upstream junk/github-actions
 
-          gh pr create -t "Update LFS lock manager" -b "Update to lock manager to ${{ steps.get-release.outputs.release }}"
+          gh pr create -t "Update LFS lock manager (${{ steps.get-release.outputs.release }}" -b "Update to lock manager to ${{ steps.get-release.outputs.release }}"
           gh pr merge junk/github-actions --rebase --delete-branch
 
